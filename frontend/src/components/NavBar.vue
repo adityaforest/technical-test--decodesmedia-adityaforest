@@ -1,11 +1,11 @@
 <template>
-    <nav class="fixed w-full p-6 bg-transparent z-50">
+    <nav :class="`fixed w-full p-6 z-50 ${isAtTop ? 'bg-transparent' : 'bg-white shadow-lg'}`">
       <div class="flex items-center justify-between">
   
         <!-- Header logo -->
-        <div>
-          <!-- <Tailwind /> -->
-          <h1 class="font-bold text-xl">LOGO</h1>
+        <div class="mr-20 flex gap-2 items-center">
+          <img :src="useAsset('icons/logo.svg')" alt="" width="50"/>
+          <h1 class="font-bold text-xl !min-w-fit">{{CompanyConfig.companyName}}</h1>
         </div>
   
         <!-- Mobile toggle -->
@@ -22,11 +22,23 @@
         </div>
   
         <!-- Navbar -->
-        <div class="hidden md:block">
-          <ul class="flex space-x-8 text-sm font-sans">
-            <li><a @click="redirectTo('/')" :class="currentRoute === '/' ? 'active border-b-2 border-blue-500 pb-1 cursor-pointer' : 'cursor-pointer'">Home</a></li>
-            <li><a @click="redirectTo('/faq')" :class="currentRoute === '/faq' ? 'active border-b-2 border-blue-500 pb-1 cursor-pointer' : 'cursor-pointer'">FAQ</a></li>
-            <li><a @click="redirectTo('/login')" class="cta bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded text-white font-semibold cursor-pointer">Log In</a></li>
+        <div class="hidden md:block md:flex md:gap-8 w-full">
+          <div :class="`w-full flex
+            ${NavbarConfig.itemPosition === 'center' ? 'justify-center' : NavbarConfig.itemPosition === 'right' ? 'justify-end' : ''}`" >
+            <ul class="flex space-x-8 text-sm font-sans">
+              <li v-for="item in NavbarConfig.itemList">
+                <a @click="redirectTo(item.path)" :class="`${currentRoute === item.path ? 'active border-b-2 border-blue-500 pb-1' : ''} cursor-pointer`">
+                  {{ item.label }}
+                </a>
+              </li>                         
+            </ul>
+          </div>
+          <ul class="min-w-fit flex gap-8">
+            <li v-for="button in NavbarConfig.buttonList">
+              <a @click="redirectTo(button.path)" class="cta bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded text-white font-semibold cursor-pointer">
+                {{ button.label }}
+              </a>
+            </li>
           </ul>
         </div>
   
@@ -59,14 +71,24 @@
             </button>
           </div>
   
-          <span @click="isOpen = false" class="flex w-full items-center p-4 border-b">
-            <Tailwind />
+          <span @click="isOpen = false" class="flex w-full items-center p-4 border-b">            
+            <div class="flex gap-2 items-center">
+            <img :src="useAsset('icons/logo.svg')" alt="" width="50"/>
+            <h1 class="font-bold text-sm !min-w-fit">{{ CompanyConfig.companyName }}</h1>
+        </div>
           </span>
   
           <ul class="divide-y font-sans">
-            <li><a href="#" @click="isOpen = false" class="my-4 inline-block">Home</a></li>
-            <li><a href="#" @click="isOpen = false" class="my-4 inline-block">FAQ</a></li>            
-            <li><a href="#" @click="isOpen = false" class="my-8 w-full text-center font-semibold cta inline-block bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded text-white">Log In</a></li>
+            <li v-for="item in NavbarConfig.itemList">
+              <a @click="redirectTo(item.path,true)" class="my-4 inline-block">
+                {{ item.label }}
+              </a>
+            </li>            
+            <li v-for="button in NavbarConfig.buttonList">
+              <a @click="redirectTo(button.path,true)" class="my-8 w-full text-center font-semibold cta inline-block bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded text-white">
+                {{ button.label }}
+              </a>
+            </li>
           </ul>
   
           <div class="follow">
@@ -118,12 +140,20 @@
 </template>
   
 <script setup lang="ts">
+import { useAsset } from '~/composables/useAsset'
+import NavbarConfig from '~/config/navbar'
+import CompanyConfig from '~/config/company'
+
 const isOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
 const currentRoute = ref(route.path)
+const isAtTop = ref(true)
 
-const redirectTo = (path: string) => {
+const redirectTo = (path: string , closeDrawer: boolean = false) => {
+    if(closeDrawer){
+      isOpen.value = false
+    }
     currentRoute.value = path
     router.push(path)
 }
@@ -139,9 +169,23 @@ watch(isOpen, (isOpen) => {
     }
 })
 
+const handleScroll = () => {      
+      if (window.scrollY === 0) {        
+        isAtTop.value = true
+      } else {        
+        isAtTop.value = false
+      }
+    }
+
 onMounted(() => {    
     document.addEventListener("keydown", e => {
         if (e.keyCode == 27 && isOpen.value) isOpen.value = false;
     });
+
+    window.addEventListener("scroll", handleScroll);
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener("scroll", handleScroll);
 })
 </script>

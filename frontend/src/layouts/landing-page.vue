@@ -1,11 +1,16 @@
 <template>
     <div>
-      <NavBar />
+      <NavBar 
+        :item-position="NavbarConfig.itemPosition"
+        :item-list="NavbarConfig.itemList"
+        :button-list="NavbarConfig.buttonList"
+      />
       <slot/>
     </div>
 </template>
 <script setup lang="ts">
 import NavBar from '@/components/NavBar.vue'
+import NavbarConfig from '@/config/navbar'
 
 </script>
   
